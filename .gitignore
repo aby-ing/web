@@ -1,0 +1,11 @@
+backend/target/
+backend/data/
+*.pid
+.server.pid
+*.log
+.idea/
+.vscode/
+*.class
+*.iml
+node_modules/
+dist/

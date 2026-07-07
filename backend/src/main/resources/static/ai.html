@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI 助手 - 校园餐厅点餐系统</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body data-page="ai" data-auth="true">
+<header class="topbar">
+    <a class="brand" href="/order.html"><span class="brand-mark">食</span><div><strong>校园餐厅点餐系统</strong><small>Restaurant Order System</small></div></a>
+    <nav class="nav-tabs" aria-label="主导航">
+        <a class="nav-btn" href="/order.html">点餐</a>
+        <a class="nav-btn" href="/orders.html">订单</a>
+        <a class="nav-btn" href="/reviews.html">评价</a>
+        <a class="nav-btn active" href="/ai.html">AI 助手</a>
+        <a class="nav-btn admin-only" href="/admin.html" hidden>后台</a>
+    </nav>
+    <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button><button class="danger-btn admin-only" type="button" id="shutdownBtn" hidden>停止服务</button></div>
+</header>
+<main class="page-shell">
+    <div class="ai-layout">
+        <form class="editor-panel" id="aiRecommendForm">
+            <h1>AI 点餐助手</h1>
+            <label>口味偏好<input id="aiTaste" placeholder="香辣、清淡、酸甜"></label>
+            <label>人均预算<input id="aiBudget" type="number" min="1" step="0.5" value="25"></label>
+            <label>人数<input id="aiPeople" type="number" min="1" max="20" value="2"></label>
+            <label>忌口<input id="aiAvoid" placeholder="香菜、辣椒等"></label>
+            <button class="primary-btn" type="submit">生成推荐</button>
+        </form>
+        <div class="ai-result" id="aiRecommendResult"></div>
+        <form class="editor-panel" id="serviceForm">
+            <h2>智能客服</h2>
+            <label>问题<input id="serviceQuery" placeholder="营业时间、退单、打包自提"></label>
+            <button class="secondary-btn" type="submit">提问</button>
+            <p class="answer" id="serviceAnswer"></p>
+        </form>
+    </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

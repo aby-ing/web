@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>评价 - 校园餐厅点餐系统</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body data-page="reviews" data-auth="true">
+<header class="topbar">
+    <a class="brand" href="/order.html"><span class="brand-mark">食</span><div><strong>校园餐厅点餐系统</strong><small>Restaurant Order System</small></div></a>
+    <nav class="nav-tabs" aria-label="主导航">
+        <a class="nav-btn" href="/order.html">点餐</a>
+        <a class="nav-btn" href="/orders.html">订单</a>
+        <a class="nav-btn active" href="/reviews.html">评价</a>
+        <a class="nav-btn" href="/ai.html">AI 助手</a>
+        <a class="nav-btn admin-only" href="/admin.html" hidden>后台</a>
+    </nav>
+    <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button><button class="danger-btn admin-only" type="button" id="shutdownBtn" hidden>停止服务</button></div>
+</header>
+<main class="page-shell">
+    <div class="review-layout">
+        <form class="editor-panel" id="reviewForm">
+            <h1>菜品评价</h1>
+            <label>菜品<select id="reviewDishSelect"></select></label>
+            <label>关联订单<select id="reviewOrderSelect"></select></label>
+            <label>评分
+                <select id="reviewRating">
+                    <option value="5">5 分</option>
+                    <option value="4">4 分</option>
+                    <option value="3">3 分</option>
+                    <option value="2">2 分</option>
+                    <option value="1">1 分</option>
+                </select>
+            </label>
+            <label>评价内容<textarea id="reviewContent" rows="5"></textarea></label>
+            <button class="primary-btn" type="submit">提交评价</button>
+        </form>
+        <section>
+            <div class="section-title"><h2>近期评价</h2><button class="secondary-btn" type="button" id="refreshReviewsBtn">刷新</button></div>
+            <div class="review-list" id="reviewList"></div>
+        </section>
+    </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

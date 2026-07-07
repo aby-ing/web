@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>订单 - 校园餐厅点餐系统</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body data-page="orders" data-auth="true">
+<header class="topbar">
+    <a class="brand" href="/order.html"><span class="brand-mark">食</span><div><strong>校园餐厅点餐系统</strong><small>Restaurant Order System</small></div></a>
+    <nav class="nav-tabs" aria-label="主导航">
+        <a class="nav-btn" href="/order.html">点餐</a>
+        <a class="nav-btn active" href="/orders.html">订单</a>
+        <a class="nav-btn" href="/reviews.html">评价</a>
+        <a class="nav-btn" href="/ai.html">AI 助手</a>
+        <a class="nav-btn admin-only" href="/admin.html" hidden>后台</a>
+    </nav>
+    <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button><button class="danger-btn admin-only" type="button" id="shutdownBtn" hidden>停止服务</button></div>
+</header>
+<main class="page-shell">
+    <div class="section-title">
+        <div><h1>我的订单</h1><p>查看订单状态和明细。</p></div>
+        <button class="secondary-btn" type="button" id="refreshOrdersBtn">刷新</button>
+    </div>
+    <div class="order-list" id="myOrderList"></div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

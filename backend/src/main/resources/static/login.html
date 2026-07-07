@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 - 校园餐厅点餐系统</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body data-page="login">
+<main class="login-page">
+    <section class="login-hero">
+        <div class="brand large">
+            <span class="brand-mark">食</span>
+            <div>
+                <strong>校园餐厅点餐系统</strong>
+                <small>Restaurant Order System</small>
+            </div>
+        </div>
+        <h1>登录后开始点餐</h1>
+        <p>系统支持菜品浏览、点餐车、订单管理、评价反馈和 AI 点餐推荐。</p>
+    </section>
+
+    <section class="login-card">
+        <div class="section-title">
+            <h2>用户登录</h2>
+            <span class="status">SQL Server</span>
+        </div>
+        <form class="auth-form" id="loginForm">
+            <label>用户名<input id="loginUsername" autocomplete="username" value="user"></label>
+            <label>密码<input id="loginPassword" type="password" autocomplete="current-password" value="123456"></label>
+            <button class="primary-btn" type="submit">登录</button>
+        </form>
+
+        <form class="auth-form muted-form" id="registerForm">
+            <h2>新用户注册</h2>
+            <label>新用户名<input id="registerUsername" autocomplete="username"></label>
+            <label>昵称<input id="registerNickname"></label>
+            <label>手机号<input id="registerPhone"></label>
+            <label>密码<input id="registerPassword" type="password" autocomplete="new-password"></label>
+            <button class="secondary-btn" type="submit">注册并登录</button>
+        </form>
+
+        <div class="panel-block compact no-pad">
+            <p>普通用户：user / 123456</p>
+            <p>管理员：admin / 123456</p>
+        </div>
+    </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

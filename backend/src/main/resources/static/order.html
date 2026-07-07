@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>点餐 - 校园餐厅点餐系统</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+</head>
+<body data-page="order" data-auth="true">
+<header class="topbar">
+    <a class="brand" href="/order.html">
+        <span class="brand-mark">食</span>
+        <div><strong>校园餐厅点餐系统</strong><small>Restaurant Order System</small></div>
+    </a>
+    <nav class="nav-tabs" aria-label="主导航">
+        <a class="nav-btn active" href="/order.html">点餐</a>
+        <a class="nav-btn" href="/orders.html">订单</a>
+        <a class="nav-btn" href="/reviews.html">评价</a>
+        <a class="nav-btn" href="/ai.html">AI 助手</a>
+        <a class="nav-btn admin-only" href="/admin.html" hidden>后台</a>
+    </nav>
+    <div class="top-actions">
+        <div class="user-chip" id="userChip">未登录</div>
+        <button class="ghost-btn" type="button" id="logoutBtn">退出</button>
+        <button class="danger-btn admin-only" type="button" id="shutdownBtn" hidden>停止服务</button>
+    </div>
+</header>
+
+<main class="page-shell">
+    <section class="order-layout">
+        <div class="menu-area">
+            <div class="toolbar">
+                <div>
+                    <h1>菜品点餐</h1>
+                    <p>选择菜品后提交订单，库存和销量会实时更新。</p>
+                </div>
+                <label class="search-box"><span>搜索</span><input id="searchInput" placeholder="菜名、食材、口味"></label>
+            </div>
+            <div class="category-strip" id="categoryFilters"></div>
+            <div class="dish-grid" id="dishGrid"></div>
+            <div class="empty-state" id="emptyDishes" hidden>暂无匹配菜品</div>
+        </div>
+        <aside class="cart-panel">
+            <div class="section-title">
+                <h2>点餐车</h2>
+                <button class="ghost-btn" type="button" id="clearCartBtn">清空</button>
+            </div>
+            <div class="cart-list" id="cartItems"></div>
+            <div class="cart-total"><span>合计</span><strong id="cartTotal">¥0.00</strong></div>
+            <label>用餐方式
+                <select id="diningType">
+                    <option value="DINE_IN">堂食</option>
+                    <option value="TAKE_OUT">打包自提</option>
+                </select>
+            </label>
+            <label>备注<textarea id="orderRemark" rows="3" placeholder="少辣、不要香菜等"></textarea></label>
+            <button class="primary-btn full" type="button" id="submitOrderBtn">提交订单</button>
+        </aside>
+    </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
