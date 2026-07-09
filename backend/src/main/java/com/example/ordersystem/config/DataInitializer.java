@@ -42,6 +42,15 @@ public class DataInitializer {
             admin.setRole(Role.ADMIN);
             userRepository.save(admin);
         }
+        if (userRepository.findByUsername("merchant").isEmpty()) {
+            User merchant = new User();
+            merchant.setUsername("merchant");
+            merchant.setPasswordHash(passwordService.hash("123456"));
+            merchant.setNickname("餐厅商家");
+            merchant.setPhone("18800000003");
+            merchant.setRole(Role.MERCHANT);
+            userRepository.save(merchant);
+        }
         if (userRepository.findByUsername("user").isEmpty()) {
             User user = new User();
             user.setUsername("user");

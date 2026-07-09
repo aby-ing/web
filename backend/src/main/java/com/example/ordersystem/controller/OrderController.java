@@ -43,11 +43,24 @@ public class OrderController {
         return ApiResponse.ok(orderService.adminOrders(token));
     }
 
+    @GetMapping("/merchant/orders")
+    public ApiResponse<List<Dtos.OrderView>> merchantOrders(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token) {
+        return ApiResponse.ok(orderService.merchantOrders(token));
+    }
+
     @PutMapping("/admin/orders/{id}/status")
     public ApiResponse<Dtos.OrderView> updateStatus(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @PathVariable Long id,
             @Valid @RequestBody Dtos.OrderStatusRequest request) {
         return ApiResponse.ok("订单状态已更新", orderService.updateStatus(token, id, request));
+    }
+    @PutMapping("/merchant/orders/{id}/status")
+    public ApiResponse<Dtos.OrderView> updateMerchantStatus(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            @PathVariable Long id,
+            @Valid @RequestBody Dtos.OrderStatusRequest request) {
+        return ApiResponse.ok("订单状态已更新", orderService.updateMerchantStatus(token, id, request));
     }
 }

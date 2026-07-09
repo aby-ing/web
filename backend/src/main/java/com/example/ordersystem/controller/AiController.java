@@ -53,4 +53,32 @@ public class AiController {
         authService.requireAdmin(token);
         return ApiResponse.ok(aiService.analyzeReviews());
     }
+
+    @GetMapping("/admin/ai/hot-dishes-analysis")
+    public ApiResponse<Dtos.AiHotDishAnalysis> hotDishAnalysis(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token) {
+        authService.requireAdmin(token);
+        return ApiResponse.ok(aiService.analyzeHotDishes());
+    }
+    @PostMapping("/merchant/ai/description")
+    public ApiResponse<Dtos.AiTextResult> merchantDescription(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            @Valid @RequestBody Dtos.AiDescriptionRequest request) {
+        authService.requireMerchantOrAdmin(token);
+        return ApiResponse.ok(aiService.generateDescription(request));
+    }
+
+    @GetMapping("/merchant/ai/reviews-analysis")
+    public ApiResponse<Dtos.AiReviewAnalysis> merchantReviewAnalysis(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token) {
+        authService.requireMerchantOrAdmin(token);
+        return ApiResponse.ok(aiService.analyzeReviews());
+    }
+
+    @GetMapping("/merchant/ai/hot-dishes-analysis")
+    public ApiResponse<Dtos.AiHotDishAnalysis> merchantHotDishAnalysis(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token) {
+        authService.requireMerchantOrAdmin(token);
+        return ApiResponse.ok(aiService.analyzeHotDishes());
+    }
 }

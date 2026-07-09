@@ -248,4 +248,21 @@ public final class Dtos {
             String suggestion
     ) {
     }
+
+    public record AiHotDishItem(
+            Long dishId,
+            String dishName,
+            long quantity,
+            BigDecimal revenue,
+            double quantityShare
+    ) {
+    }
+
+    public record AiHotDishAnalysis(
+            long totalQuantity,
+            BigDecimal totalRevenue,
+            List<AiHotDishItem> topDishes,
+            String suggestion
+    ) {
+    }
 }

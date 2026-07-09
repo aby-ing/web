@@ -102,9 +102,27 @@ public class OrderService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<Dtos.OrderView> merchantOrders(String token) {
+        authService.requireMerchantOrAdmin(token);
+        return orderRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toOrderView)
+                .toList();
+    }
+
     @Transactional
     public Dtos.OrderView updateStatus(String token, Long orderId, Dtos.OrderStatusRequest request) {
         authService.requireAdmin(token);
+        FoodOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+        order.setStatus(request.status());
+        return toOrderView(orderRepository.save(order));
+    }
+
+    @Transactional
+    public Dtos.OrderView updateMerchantStatus(String token, Long orderId, Dtos.OrderStatusRequest request) {
+        authService.requireMerchantOrAdmin(token);
         FoodOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
         order.setStatus(request.status());

@@ -3,22 +3,22 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>后台 - 校园餐厅点餐系统</title>
+    <title>商家工作台 - 校园餐厅点餐系统</title>
     <link rel="stylesheet" href="/styles.css">
     <script defer src="/app.js"></script>
 </head>
-<body data-page="admin" data-auth="true" data-admin="true">
+<body data-page="merchant" data-auth="true" data-merchant="true">
 <header class="topbar">
-    <a class="brand" href="/order.html"><span class="brand-mark">食</span><div><strong>校园餐厅点餐系统</strong><small>Restaurant Order System</small></div></a>
+    <a class="brand" href="/order.html"><span class="brand-mark">餐</span><div><strong>校园餐厅点餐系统</strong><small>Restaurant Order System</small></div></a>
     <nav class="nav-tabs" aria-label="主导航">
         <a class="nav-btn" href="/order.html">点餐</a>
         <a class="nav-btn" href="/orders.html">订单</a>
         <a class="nav-btn" href="/reviews.html">评价</a>
         <a class="nav-btn" href="/ai.html">AI 助手</a>
-        <a class="nav-btn merchant-only" href="/merchant.html" hidden>商家工作台</a>
-        <a class="nav-btn admin-only active" href="/admin.html">后台</a>
+        <a class="nav-btn merchant-only active" href="/merchant.html">商家工作台</a>
+        <a class="nav-btn admin-only" href="/admin.html" hidden>后台</a>
     </nav>
-    <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button><button class="danger-btn admin-only" type="button" id="shutdownBtn">停止服务</button></div>
+    <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button></div>
 </header>
 <main class="page-shell">
     <div class="admin-grid">
@@ -68,9 +68,9 @@
         </section>
 
         <section class="admin-panel wide">
-            <div class="section-title"><h1>订单管理</h1><button class="secondary-btn" type="button" id="refreshAdminOrdersBtn">刷新</button></div>
+            <div class="section-title"><h1>订单处理</h1><button class="secondary-btn" type="button" id="refreshAdminOrdersBtn">刷新</button></div>
             <div class="table-wrap">
-                <table><thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>状态</th><th>下单时间</th><th>操作</th></tr></thead><tbody id="adminOrderTable"></tbody></table>
+                <table><thead><tr><th>订单号</th><th>客户</th><th>金额</th><th>状态</th><th>下单时间</th><th>操作</th></tr></thead><tbody id="adminOrderTable"></tbody></table>
             </div>
         </section>
     </div>

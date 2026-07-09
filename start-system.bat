@@ -1,39 +1,69 @@
 @echo off
 chcp 65001 >nul
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "PROJECT_DIR=%~dp0"
 set "BACKEND_DIR=%PROJECT_DIR%backend"
-set "JAVA_HOME=D:\IntelliJ IDEA 2025.2.1\jbr"
-set "MAVEN_CMD=D:\IntelliJ IDEA 2025.2.1\plugins\maven\lib\maven3\bin\mvn.cmd"
 set "JAR_FILE=%BACKEND_DIR%\target\restaurant-order-system-1.0.0.jar"
 
-set "DB_USERNAME=sa"
-set "DB_PASSWORD=123456"
+if not defined DB_USERNAME set "DB_USERNAME=root"
+if not defined DB_PASSWORD set "DB_PASSWORD=123456"
 
-if not exist "%JAVA_HOME%\bin\java.exe" (
-  echo [错误] 找不到 Java：%JAVA_HOME%\bin\java.exe
+if defined JAVA_HOME (
+  if exist "%JAVA_HOME%\bin\java.exe" set "JAVA_EXE=%JAVA_HOME%\bin\java.exe"
+)
+
+if not defined JAVA_EXE (
+  for /f "tokens=* usebackq" %%j in (`where java 2^>nul`) do (
+    if not defined JAVA_EXE set "JAVA_EXE=%%j"
+  )
+)
+
+if not defined JAVA_EXE (
+  echo [ERROR] Java was not found. Install JDK 21+ or set JAVA_HOME.
   pause
   exit /b 1
 )
 
-set "SQL_PORT=50374"
-for /f "tokens=* usebackq" %%p in (`sqlcmd -S localhost\SQLEXPRESS -U %DB_USERNAME% -P %DB_PASSWORD% -h -1 -W -Q "SET NOCOUNT ON; EXEC xp_instance_regread N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer\SuperSocketNetLib\Tcp\IPAll', N'TcpDynamicPorts'" ^| findstr /R "^[0-9][0-9]*$"`) do (
-  set "SQL_PORT=%%p"
+if not defined MAVEN_CMD (
+  if defined MAVEN_HOME (
+    if exist "%MAVEN_HOME%\bin\mvn.cmd" set "MAVEN_CMD=%MAVEN_HOME%\bin\mvn.cmd"
+  )
 )
-set "DB_URL=jdbc:sqlserver://localhost:%SQL_PORT%;databaseName=restaurant_order;encrypt=true;trustServerCertificate=true"
+
+if not defined MAVEN_CMD (
+  for /f "tokens=* usebackq" %%m in (`dir /b /s "D:\Maven\mvn.cmd" "D:\Maven\apache-maven-*\bin\mvn.cmd" 2^>nul`) do (
+    if not defined MAVEN_CMD set "MAVEN_CMD=%%m"
+  )
+)
+
+if not defined MAVEN_CMD (
+  for /f "tokens=* usebackq" %%m in (`where mvn.cmd 2^>nul`) do (
+    if not defined MAVEN_CMD set "MAVEN_CMD=%%m"
+  )
+)
+
+if not defined MAVEN_CMD (
+  for /f "tokens=* usebackq" %%m in (`where mvn 2^>nul`) do (
+    if not defined MAVEN_CMD set "MAVEN_CMD=%%m"
+  )
+)
+
+if not defined DB_URL (
+  set "DB_URL=jdbc:mysql://localhost:3306/restaurant_order?useUnicode=true^&characterEncoding=utf8^&serverTimezone=Asia/Shanghai^&useSSL=false^&allowPublicKeyRetrieval=true"
+)
 
 if not exist "%JAR_FILE%" (
-  echo [提示] 未找到 JAR，正在自动构建项目...
-  if not exist "%MAVEN_CMD%" (
-    echo [错误] 找不到 Maven：%MAVEN_CMD%
+  echo [INFO] JAR not found. Building the backend first...
+  if not defined MAVEN_CMD (
+    echo [ERROR] Maven was not found. Install Maven or set MAVEN_HOME/MAVEN_CMD.
     pause
     exit /b 1
   )
   cd /d "%BACKEND_DIR%"
   "%MAVEN_CMD%" -DskipTests package
   if errorlevel 1 (
-    echo [错误] 构建失败，请查看上方日志。
+    echo [ERROR] Build failed. Check the logs above.
     pause
     exit /b 1
   )
@@ -41,23 +71,23 @@ if not exist "%JAR_FILE%" (
 
 echo.
 echo ==========================================
-echo  校园餐厅点餐系统正在启动
-echo  访问地址：http://localhost:8080/login.html
-echo  SQL Server 端口：%SQL_PORT%
+echo  Campus restaurant order system starting
+echo  URL: http://localhost:8080/login.html
+echo  Java: %JAVA_EXE%
+echo  MySQL: %DB_URL%
 echo.
-echo  普通用户：user / 123456
-echo  管理员：  admin / 123456
+echo  User:  user  / 123456
+echo  Admin: admin / 123456
 echo.
-echo  关闭服务：管理员登录后点右上角“停止服务”
-echo  或者在此窗口按 Ctrl+C
+echo  Press Ctrl+C in this window to stop.
 echo ==========================================
 echo.
 
 start "" powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 8; Start-Process 'http://localhost:8080/login.html'"
 
 cd /d "%BACKEND_DIR%"
-"%JAVA_HOME%\bin\java.exe" -jar "%JAR_FILE%"
+"%JAVA_EXE%" -jar "%JAR_FILE%"
 
 echo.
-echo 服务已停止。
+echo Service stopped.
 pause

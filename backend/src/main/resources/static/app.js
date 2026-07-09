@@ -1,4 +1,4 @@
-const $ = (selector) => document.querySelector(selector);
+﻿const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 const state = {
@@ -14,7 +14,8 @@ const state = {
     adminDishes: [],
     adminOrders: [],
     editingCategoryId: null,
-    editingDishId: null
+    editingDishId: null,
+    managementBase: "/api/admin"
 };
 
 const statusLabels = {
@@ -39,13 +40,19 @@ async function init() {
     const page = document.body.dataset.page || "";
     const requiresAuth = document.body.dataset.auth === "true";
     const requiresAdmin = document.body.dataset.admin === "true";
+    const requiresMerchant = document.body.dataset.merchant === "true";
+    state.managementBase = page === "merchant" ? "/api/merchant" : "/api/admin";
 
     if (requiresAuth && !state.user) {
         location.replace("/login.html");
         return;
     }
     if (requiresAdmin && (!state.user || state.user.role !== "ADMIN")) {
-        location.replace("/order.html");
+        location.replace(homeForRole(state.user?.role));
+        return;
+    }
+    if (requiresMerchant && (!state.user || !isMerchantOrAdmin())) {
+        location.replace(homeForRole(state.user?.role));
         return;
     }
 
@@ -67,9 +74,31 @@ async function init() {
     if (page === "ai") {
         await initAiPage();
     }
-    if (page === "admin") {
+    if (page === "admin" || page === "merchant") {
         await initAdminPage();
     }
+}
+
+function isAdmin() {
+    return state.user && state.user.role === "ADMIN";
+}
+
+function isMerchantOrAdmin() {
+    return state.user && (state.user.role === "MERCHANT" || state.user.role === "ADMIN");
+}
+
+function homeForRole(role) {
+    if (role === "ADMIN") {
+        return "/admin.html";
+    }
+    if (role === "MERCHANT") {
+        return "/merchant.html";
+    }
+    return "/order.html";
+}
+
+function managementApiBase() {
+    return state.managementBase || "/api/admin";
 }
 
 function bindGlobalEvents() {
@@ -86,7 +115,7 @@ function bindGlobalEvents() {
 
 function initLoginPage() {
     if (state.user) {
-        location.replace("/order.html");
+        location.replace(homeForRole(state.user.role));
         return;
     }
     $("#loginForm").addEventListener("submit", handleLogin);
@@ -132,6 +161,10 @@ async function initAdminPage() {
     $("#generateDescBtn").addEventListener("click", generateDishDescription);
     $("#refreshAdminOrdersBtn").addEventListener("click", loadAdminOrders);
     $("#refreshAnalysisBtn").addEventListener("click", loadAnalysis);
+    const hotDishAnalysisBtn = $("#refreshHotDishAnalysisBtn");
+    if (hotDishAnalysisBtn) {
+        hotDishAnalysisBtn.addEventListener("click", loadHotDishAnalysis);
+    }
     await loadAdmin();
 }
 
@@ -185,6 +218,9 @@ function refreshAuthUi() {
     $$(".admin-only").forEach((element) => {
         element.hidden = !isAdmin;
     });
+    $$(".merchant-only").forEach((element) => {
+        element.hidden = !isMerchantOrAdmin();
+    });
 }
 
 async function handleLogin(event) {
@@ -199,7 +235,7 @@ async function handleLogin(event) {
         });
         saveSession(result);
         showToast("登录成功");
-        window.setTimeout(() => location.href = "/order.html", 400);
+        window.setTimeout(() => location.href = homeForRole(result.user.role), 400);
     } catch (error) {
         showToast(error.message);
     }
@@ -562,9 +598,9 @@ async function submitServiceQuestion(event) {
 async function loadAdmin() {
     try {
         const [categories, dishes, orders] = await Promise.all([
-            api("/api/admin/categories"),
-            api("/api/admin/dishes"),
-            api("/api/admin/orders")
+            api(`${managementApiBase()}/categories`),
+            api(`${managementApiBase()}/dishes`),
+            api(`${managementApiBase()}/orders`)
         ]);
         state.adminCategories = categories;
         state.adminDishes = dishes;
@@ -574,6 +610,7 @@ async function loadAdmin() {
         renderAdminOrders();
         renderDishSelects();
         await loadAnalysis();
+        await loadHotDishAnalysis();
     } catch (error) {
         showToast(error.message);
     }
@@ -632,7 +669,7 @@ function renderAdminOrders() {
 
 async function loadAdminOrders() {
     try {
-        state.adminOrders = await api("/api/admin/orders");
+        state.adminOrders = await api(`${managementApiBase()}/orders`);
         renderAdminOrders();
         showToast("后台订单已刷新");
     } catch (error) {
@@ -648,7 +685,7 @@ async function saveCategory(event) {
             sortOrder: Number($("#categorySort").value || 0),
             enabled: $("#categoryEnabled").checked
         };
-        const path = state.editingCategoryId ? `/api/admin/categories/${state.editingCategoryId}` : "/api/admin/categories";
+        const path = state.editingCategoryId ? `${managementApiBase()}/categories/${state.editingCategoryId}` : `${managementApiBase()}/categories`;
         const method = state.editingCategoryId ? "PUT" : "POST";
         await api(path, { method, body: JSON.stringify(body) });
         resetCategoryForm();
@@ -681,7 +718,7 @@ async function saveDish(event) {
             description: $("#adminDishDescription").value,
             available: $("#adminDishAvailable").checked
         };
-        const path = state.editingDishId ? `/api/admin/dishes/${state.editingDishId}` : "/api/admin/dishes";
+        const path = state.editingDishId ? `${managementApiBase()}/dishes/${state.editingDishId}` : `${managementApiBase()}/dishes`;
         const method = state.editingDishId ? "PUT" : "POST";
         await api(path, { method, body: JSON.stringify(body) });
         resetDishForm();
@@ -707,7 +744,7 @@ function resetDishForm() {
 
 async function generateDishDescription() {
     try {
-        const result = await api("/api/admin/ai/description", {
+        const result = await api(`${managementApiBase()}/ai/description`, {
             method: "POST",
             body: JSON.stringify({
                 name: $("#adminDishName").value,
@@ -724,12 +761,33 @@ async function generateDishDescription() {
 
 async function loadAnalysis() {
     try {
-        const analysis = await api("/api/admin/ai/reviews-analysis");
+        const analysis = await api(`${managementApiBase()}/ai/reviews-analysis`);
         $("#analysisBox").innerHTML = `
             <p>评价数：${analysis.totalReviews}</p>
             <p>平均评分：${analysis.averageRating}</p>
             <p>情感统计：好评 ${analysis.sentimentCount.POSITIVE || 0}，中性 ${analysis.sentimentCount.NEUTRAL || 0}，差评 ${analysis.sentimentCount.NEGATIVE || 0}</p>
             <p>热点问题：${analysis.hotIssues.length ? analysis.hotIssues.join("、") : "暂无"}</p>
+            <p>${escapeHtml(analysis.suggestion)}</p>
+        `;
+    } catch (error) {
+        showToast(error.message);
+    }
+}
+
+async function loadHotDishAnalysis() {
+    const box = $("#hotDishAnalysisBox");
+    if (!box) {
+        return;
+    }
+    try {
+        const analysis = await api(`${managementApiBase()}/ai/hot-dishes-analysis`);
+        const rows = analysis.topDishes.map((dish) => `
+            <p>${escapeHtml(dish.dishName)}：${dish.quantity} 份，${money(dish.revenue)}，占比 ${dish.quantityShare}%</p>
+        `).join("");
+        box.innerHTML = `
+            <p>总销量：${analysis.totalQuantity} 份</p>
+            <p>销售额：${money(analysis.totalRevenue)}</p>
+            ${rows || "<p>暂无热门菜品数据</p>"}
             <p>${escapeHtml(analysis.suggestion)}</p>
         `;
     } catch (error) {
@@ -788,7 +846,7 @@ async function handleAction(event) {
         }
     }
     if (action === "admin-disable-category") {
-        await adminDisable(`/api/admin/categories/${id}`, "分类已停用", loadAdmin);
+        await adminDisable(`${managementApiBase()}/categories/${id}`, "分类已停用", loadAdmin);
     }
     if (action === "admin-edit-dish") {
         const dish = state.adminDishes.find((item) => String(item.id) === String(id));
@@ -807,7 +865,7 @@ async function handleAction(event) {
         }
     }
     if (action === "admin-disable-dish") {
-        await adminDisable(`/api/admin/dishes/${id}`, "菜品已下架", loadAdmin);
+        await adminDisable(`${managementApiBase()}/dishes/${id}`, "菜品已下架", loadAdmin);
     }
     if (action === "admin-update-status") {
         await updateAdminOrderStatus(id);
@@ -826,7 +884,7 @@ async function adminDisable(path, message, after) {
 
 async function updateAdminOrderStatus(id) {
     try {
-        await api(`/api/admin/orders/${id}/status`, {
+        await api(`${managementApiBase()}/orders/${id}/status`, {
             method: "PUT",
             body: JSON.stringify({ status: $(`#status-${id}`).value })
         });
@@ -907,3 +965,4 @@ function debounce(fn, delay) {
         timer = window.setTimeout(() => fn(...args), delay);
     };
 }
+

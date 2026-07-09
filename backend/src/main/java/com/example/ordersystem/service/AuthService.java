@@ -81,6 +81,22 @@ public class AuthService {
         return user;
     }
 
+    public User requireMerchant(String token) {
+        User user = requireUser(token);
+        if (user.getRole() != Role.MERCHANT) {
+            throw new SecurityException("需要商家权限");
+        }
+        return user;
+    }
+
+    public User requireMerchantOrAdmin(String token) {
+        User user = requireUser(token);
+        if (user.getRole() != Role.MERCHANT && user.getRole() != Role.ADMIN) {
+            throw new SecurityException("需要商家或管理员权限");
+        }
+        return user;
+    }
+
     public Dtos.UserView me(String token) {
         return toUserView(requireUser(token));
     }
