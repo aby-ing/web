@@ -33,15 +33,6 @@ public class DataInitializer {
     }
 
     private void seedUsers(UserRepository userRepository, PasswordService passwordService) {
-        if (userRepository.findByUsername("admin").isEmpty()) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPasswordHash(passwordService.hash("123456"));
-            admin.setNickname("餐厅管理员");
-            admin.setPhone("18800000001");
-            admin.setRole(Role.ADMIN);
-            userRepository.save(admin);
-        }
         if (userRepository.findByUsername("merchant").isEmpty()) {
             User merchant = new User();
             merchant.setUsername("merchant");

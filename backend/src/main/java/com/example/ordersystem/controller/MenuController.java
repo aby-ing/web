@@ -115,7 +115,7 @@ public class MenuController {
     @GetMapping("/merchant/categories")
     public ApiResponse<List<Dtos.CategoryView>> merchantCategories(
             @RequestHeader(value = "X-Auth-Token", required = false) String token) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         return ApiResponse.ok(menuService.categories(true));
     }
 
@@ -123,7 +123,7 @@ public class MenuController {
     public ApiResponse<Dtos.CategoryView> createMerchantCategory(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @Valid @RequestBody Dtos.CategoryRequest request) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         return ApiResponse.ok("分类已创建", menuService.createCategory(request));
     }
 
@@ -132,7 +132,7 @@ public class MenuController {
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @PathVariable Long id,
             @Valid @RequestBody Dtos.CategoryRequest request) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         return ApiResponse.ok("分类已更新", menuService.updateCategory(id, request));
     }
 
@@ -140,7 +140,7 @@ public class MenuController {
     public ApiResponse<Void> deleteMerchantCategory(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @PathVariable Long id) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         menuService.disableCategory(id);
         return ApiResponse.ok("分类已停用", null);
     }
@@ -150,7 +150,7 @@ public class MenuController {
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         return ApiResponse.ok(menuService.dishes(keyword, categoryId, true));
     }
 
@@ -158,7 +158,7 @@ public class MenuController {
     public ApiResponse<Dtos.DishView> createMerchantDish(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @Valid @RequestBody Dtos.DishRequest request) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         return ApiResponse.ok("菜品已创建", menuService.createDish(request));
     }
 
@@ -167,7 +167,7 @@ public class MenuController {
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @PathVariable Long id,
             @Valid @RequestBody Dtos.DishRequest request) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         return ApiResponse.ok("菜品已更新", menuService.updateDish(id, request));
     }
 
@@ -175,7 +175,7 @@ public class MenuController {
     public ApiResponse<Void> deleteMerchantDish(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @PathVariable Long id) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         menuService.disableDish(id);
         return ApiResponse.ok("菜品已下架", null);
     }

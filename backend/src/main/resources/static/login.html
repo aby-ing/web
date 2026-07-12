@@ -11,20 +11,20 @@
 <main class="login-page">
     <section class="login-hero">
         <div class="brand large">
-            <span class="brand-mark">食</span>
+            <span class="brand-mark">餐</span>
             <div>
                 <strong>校园餐厅点餐系统</strong>
                 <small>Restaurant Order System</small>
             </div>
         </div>
-        <h1>登录后开始点餐</h1>
-        <p>系统支持菜品浏览、点餐车、订单管理、评价反馈和 AI 点餐推荐。</p>
+        <h1>登录后进入对应页面</h1>
+        <p>学生可以浏览菜品、提交订单、查看订单和评价；商家进入独立工作台处理分类、菜品和订单。</p>
     </section>
 
     <section class="login-card">
         <div class="section-title">
             <h2>用户登录</h2>
-            <span class="status">SQL Server</span>
+            <span class="status">MySQL</span>
         </div>
         <form class="auth-form" id="loginForm">
             <label>用户名<input id="loginUsername" autocomplete="username" value="user"></label>
@@ -33,8 +33,8 @@
         </form>
 
         <form class="auth-form muted-form" id="registerForm">
-            <h2>新用户注册</h2>
-            <label>新用户名<input id="registerUsername" autocomplete="username"></label>
+            <h2>学生注册</h2>
+            <label>用户名<input id="registerUsername" autocomplete="username"></label>
             <label>昵称<input id="registerNickname"></label>
             <label>手机号<input id="registerPhone"></label>
             <label>密码<input id="registerPassword" type="password" autocomplete="new-password"></label>
@@ -42,9 +42,8 @@
         </form>
 
         <div class="panel-block compact no-pad">
-            <p>普通用户：user / 123456</p>
+            <p>学生：user / 123456</p>
             <p>商家：merchant / 123456</p>
-            <p>管理员：admin / 123456</p>
         </div>
     </section>
 </main>

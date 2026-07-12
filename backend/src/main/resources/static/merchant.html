@@ -9,14 +9,9 @@
 </head>
 <body data-page="merchant" data-auth="true" data-merchant="true">
 <header class="topbar">
-    <a class="brand" href="/order.html"><span class="brand-mark">餐</span><div><strong>校园餐厅点餐系统</strong><small>Restaurant Order System</small></div></a>
+    <a class="brand" href="/merchant.html"><span class="brand-mark">餐</span><div><strong>校园餐厅点餐系统</strong><small>Merchant Console</small></div></a>
     <nav class="nav-tabs" aria-label="主导航">
-        <a class="nav-btn" href="/order.html">点餐</a>
-        <a class="nav-btn" href="/orders.html">订单</a>
-        <a class="nav-btn" href="/reviews.html">评价</a>
-        <a class="nav-btn" href="/ai.html">AI 助手</a>
         <a class="nav-btn merchant-only active" href="/merchant.html">商家工作台</a>
-        <a class="nav-btn admin-only" href="/admin.html" hidden>后台</a>
     </nav>
     <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button></div>
 </header>
@@ -26,7 +21,7 @@
             <h1>分类管理</h1>
             <form class="inline-form" id="categoryForm">
                 <input id="categoryName" placeholder="分类名称">
-                <input id="categorySort" type="number" value="0">
+                <input id="categorySort" type="number" value="0" placeholder="排序">
                 <label class="check-label"><input id="categoryEnabled" type="checkbox" checked>启用</label>
                 <button class="primary-btn" type="submit" id="categorySaveBtn">保存</button>
                 <button class="ghost-btn" type="button" id="categoryResetBtn">重置</button>
@@ -36,18 +31,16 @@
             </div>
         </section>
 
-        <section class="admin-panel">
-            <div class="section-title"><h1>AI 评价分析</h1><button class="secondary-btn" type="button" id="refreshAnalysisBtn">分析</button></div>
-            <div class="analysis-box" id="analysisBox"></div>
+        <section class="admin-panel analysis-panel">
+            <div class="section-title"><h1>评价分析</h1><button class="secondary-btn" type="button" id="refreshAnalysisBtn">刷新分析</button></div>
+            <div class="analysis-box review-analysis-box" id="analysisBox"></div>
         </section>
 
-        <section class="admin-panel">
-            <div class="section-title"><h1>AI 热门菜品分析</h1><button class="secondary-btn" type="button" id="refreshHotDishAnalysisBtn">分析</button></div>
-            <div class="analysis-box" id="hotDishAnalysisBox"></div>
-        </section>
-
-        <section class="admin-panel wide">
-            <h1>菜品管理</h1>
+        <section class="admin-panel wide" id="dishManagerPanel">
+            <div class="section-title">
+                <h1>菜品管理</h1>
+                <p class="edit-state" id="dishEditState">新增菜品</p>
+            </div>
             <form class="dish-form" id="dishForm">
                 <select id="adminDishCategory"></select>
                 <input id="adminDishName" placeholder="菜品名称">

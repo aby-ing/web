@@ -5,6 +5,7 @@ import com.example.ordersystem.domain.Dish;
 import com.example.ordersystem.domain.FoodOrder;
 import com.example.ordersystem.domain.OrderItem;
 import com.example.ordersystem.domain.User;
+import com.example.ordersystem.domain.Role;
 import com.example.ordersystem.dto.Dtos;
 import com.example.ordersystem.repository.DishRepository;
 import com.example.ordersystem.repository.FoodOrderRepository;
@@ -42,6 +43,9 @@ public class OrderService {
     @Transactional
     public Dtos.OrderView create(String token, Dtos.OrderCreateRequest request) {
         User user = authService.requireUser(token);
+        if (user.getRole() != Role.USER) {
+            throw new SecurityException("只有学生账号可以点单");
+        }
         Map<Long, Integer> quantityByDish = mergeQuantities(request);
 
         FoodOrder order = new FoodOrder();
@@ -104,7 +108,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<Dtos.OrderView> merchantOrders(String token) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         return orderRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(this::toOrderView)
@@ -122,7 +126,7 @@ public class OrderService {
 
     @Transactional
     public Dtos.OrderView updateMerchantStatus(String token, Long orderId, Dtos.OrderStatusRequest request) {
-        authService.requireMerchantOrAdmin(token);
+        authService.requireMerchant(token);
         FoodOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
         order.setStatus(request.status());

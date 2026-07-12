@@ -1,5 +1,6 @@
 backend/target/
 backend/data/
+BOOT-INF/
 *.pid
 .server.pid
 *.log

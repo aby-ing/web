@@ -10,12 +10,12 @@ const state = {
     cart: loadCart(),
     orders: [],
     reviews: [],
-    adminCategories: [],
-    adminDishes: [],
-    adminOrders: [],
+    managerCategories: [],
+    managerDishes: [],
+    managerOrders: [],
     editingCategoryId: null,
     editingDishId: null,
-    managementBase: "/api/admin"
+    managementBase: "/api/merchant"
 };
 
 const statusLabels = {
@@ -39,24 +39,26 @@ async function init() {
 
     const page = document.body.dataset.page || "";
     const requiresAuth = document.body.dataset.auth === "true";
-    const requiresAdmin = document.body.dataset.admin === "true";
     const requiresMerchant = document.body.dataset.merchant === "true";
-    state.managementBase = page === "merchant" ? "/api/merchant" : "/api/admin";
+    state.managementBase = "/api/merchant";
 
     if (requiresAuth && !state.user) {
         location.replace("/login.html");
         return;
     }
-    if (requiresAdmin && (!state.user || state.user.role !== "ADMIN")) {
+    if (requiresMerchant && (!state.user || !isMerchant())) {
         location.replace(homeForRole(state.user?.role));
         return;
     }
-    if (requiresMerchant && (!state.user || !isMerchantOrAdmin())) {
-        location.replace(homeForRole(state.user?.role));
+    removeStudentManagementLinks(page);
+
+    if ((page === "order" || page === "orders" || page === "reviews" || page === "ai") && state.user?.role === "MERCHANT") {
+        location.replace("/merchant.html");
         return;
     }
 
     refreshAuthUi();
+    ensureStudentCustomerService(page);
 
     if (page === "login") {
         initLoginPage();
@@ -74,23 +76,17 @@ async function init() {
     if (page === "ai") {
         await initAiPage();
     }
-    if (page === "admin" || page === "merchant") {
-        await initAdminPage();
+    if (page === "merchant") {
+        await initManagerPage();
     }
+    ensureStudentCustomerService(page);
 }
 
-function isAdmin() {
-    return state.user && state.user.role === "ADMIN";
-}
-
-function isMerchantOrAdmin() {
-    return state.user && (state.user.role === "MERCHANT" || state.user.role === "ADMIN");
+function isMerchant() {
+    return state.user && state.user.role === "MERCHANT";
 }
 
 function homeForRole(role) {
-    if (role === "ADMIN") {
-        return "/admin.html";
-    }
     if (role === "MERCHANT") {
         return "/merchant.html";
     }
@@ -98,7 +94,7 @@ function homeForRole(role) {
 }
 
 function managementApiBase() {
-    return state.managementBase || "/api/admin";
+    return state.managementBase || "/api/merchant";
 }
 
 function bindGlobalEvents() {
@@ -149,11 +145,63 @@ async function initReviewsPage() {
 
 async function initAiPage() {
     $("#aiRecommendForm").addEventListener("submit", submitAiRecommend);
-    $("#serviceForm").addEventListener("submit", submitServiceQuestion);
     await loadDishes();
 }
 
-async function initAdminPage() {
+function ensureStudentCustomerService(page) {
+    const authenticatedStudentPage = document.body.dataset.auth === "true" && page !== "merchant";
+    if (!authenticatedStudentPage || !state.user || state.user.role === "MERCHANT") {
+        return;
+    }
+    if (!$("#serviceFab")) {
+        document.body.insertAdjacentHTML("beforeend", `
+            <button class="customer-service-fab" type="button" id="serviceFab" aria-controls="servicePanel" aria-expanded="false">客服</button>
+            <section class="customer-service-panel" id="servicePanel" aria-label="智能客服" hidden>
+                <form class="customer-service-card" id="serviceForm">
+                    <div class="customer-service-head">
+                        <h2>智能客服</h2>
+                        <button class="ghost-btn icon-btn" type="button" id="serviceCloseBtn" aria-label="关闭智能客服">×</button>
+                    </div>
+                    <label>问题<input id="serviceQuery" placeholder="营业时间、退单、打包自提"></label>
+                    <button class="secondary-btn" type="submit">提问</button>
+                    <p class="answer" id="serviceAnswer"></p>
+                </form>
+            </section>
+        `);
+    }
+    initCustomerServicePanel();
+}
+
+function initCustomerServicePanel() {
+    const fab = $("#serviceFab");
+    const panel = $("#servicePanel");
+    const form = $("#serviceForm");
+    const closeBtn = $("#serviceCloseBtn");
+    if (!fab || !panel || !form || fab.dataset.bound === "true") {
+        return;
+    }
+    fab.dataset.bound = "true";
+    form.addEventListener("submit", submitServiceQuestion);
+
+    const setOpen = (open) => {
+        panel.hidden = !open;
+        panel.classList.toggle("open", open);
+        fab.setAttribute("aria-expanded", String(open));
+        if (open) {
+            $("#serviceQuery")?.focus();
+        }
+    };
+
+    fab.addEventListener("click", () => setOpen(panel.hidden));
+    closeBtn?.addEventListener("click", () => setOpen(false));
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !panel.hidden) {
+            setOpen(false);
+        }
+    });
+}
+
+async function initManagerPage() {
     $("#categoryForm").addEventListener("submit", saveCategory);
     $("#categoryResetBtn").addEventListener("click", resetCategoryForm);
     $("#dishForm").addEventListener("submit", saveDish);
@@ -161,11 +209,7 @@ async function initAdminPage() {
     $("#generateDescBtn").addEventListener("click", generateDishDescription);
     $("#refreshAdminOrdersBtn").addEventListener("click", loadAdminOrders);
     $("#refreshAnalysisBtn").addEventListener("click", loadAnalysis);
-    const hotDishAnalysisBtn = $("#refreshHotDishAnalysisBtn");
-    if (hotDishAnalysisBtn) {
-        hotDishAnalysisBtn.addEventListener("click", loadHotDishAnalysis);
-    }
-    await loadAdmin();
+    await loadManager();
 }
 
 async function api(path, options = {}) {
@@ -209,17 +253,26 @@ function clearSession() {
 
 function refreshAuthUi() {
     const chip = $("#userChip");
-    const isAdmin = state.user && state.user.role === "ADMIN";
+    const isMerchantUser = state.user && state.user.role === "MERCHANT";
     if (chip) {
         chip.textContent = state.user
-            ? `${state.user.nickname} · ${state.user.role === "ADMIN" ? "管理员" : "用户"}`
+            ? `${state.user.nickname} · ${state.user.role === "MERCHANT" ? "商家" : "学生"}`
             : "未登录";
     }
-    $$(".admin-only").forEach((element) => {
-        element.hidden = !isAdmin;
-    });
     $$(".merchant-only").forEach((element) => {
-        element.hidden = !isMerchantOrAdmin();
+        element.hidden = !isMerchantUser;
+    });
+    if (!isMerchantUser) {
+        removeStudentManagementLinks(document.body.dataset.page || "");
+    }
+}
+
+function removeStudentManagementLinks(page) {
+    if (page === "merchant") {
+        return;
+    }
+    $$('a[href="/merchant.html"], a[href="/admin.html"], .admin-only').forEach((element) => {
+        element.remove();
     });
 }
 
@@ -367,7 +420,7 @@ function renderDishes() {
 
 function addToCart(dishId) {
     const dish = state.dishes.find((item) => String(item.id) === String(dishId))
-        || state.adminDishes.find((item) => String(item.id) === String(dishId));
+        || state.managerDishes.find((item) => String(item.id) === String(dishId));
     if (!dish) {
         showToast("菜品不存在，请回到点餐页重试");
         return;
@@ -527,7 +580,7 @@ function renderDishSelects() {
     }
     const adminDishCategory = $("#adminDishCategory");
     if (adminDishCategory) {
-        const categoryOptions = state.adminCategories.length ? state.adminCategories : state.categories;
+        const categoryOptions = state.managerCategories.length ? state.managerCategories : state.categories;
         adminDishCategory.innerHTML = categoryOptions
             .filter((category) => category.enabled)
             .map((category) => `<option value="${category.id}">${escapeHtml(category.name)}</option>`)
@@ -584,10 +637,16 @@ function renderAiRecommend(result) {
 
 async function submitServiceQuestion(event) {
     event.preventDefault();
+    const query = $("#serviceQuery")?.value.trim() || "";
+    if (!query) {
+        showToast("请输入要咨询的问题");
+        $("#serviceQuery")?.focus();
+        return;
+    }
     try {
         const result = await api("/api/ai/customer-service", {
             method: "POST",
-            body: JSON.stringify({ query: $("#serviceQuery").value })
+            body: JSON.stringify({ query })
         });
         $("#serviceAnswer").textContent = result.text;
     } catch (error) {
@@ -595,44 +654,43 @@ async function submitServiceQuestion(event) {
     }
 }
 
-async function loadAdmin() {
+async function loadManager() {
     try {
         const [categories, dishes, orders] = await Promise.all([
             api(`${managementApiBase()}/categories`),
             api(`${managementApiBase()}/dishes`),
             api(`${managementApiBase()}/orders`)
         ]);
-        state.adminCategories = categories;
-        state.adminDishes = dishes;
-        state.adminOrders = orders;
-        renderAdminCategories();
-        renderAdminDishes();
-        renderAdminOrders();
+        state.managerCategories = categories;
+        state.managerDishes = dishes;
+        state.managerOrders = orders;
+        renderManagerCategories();
+        renderManagerDishes();
+        renderManagerOrders();
         renderDishSelects();
         await loadAnalysis();
-        await loadHotDishAnalysis();
     } catch (error) {
         showToast(error.message);
     }
 }
 
-function renderAdminCategories() {
-    $("#adminCategoryTable").innerHTML = state.adminCategories.map((category) => `
+function renderManagerCategories() {
+    $("#adminCategoryTable").innerHTML = state.managerCategories.map((category) => `
         <tr>
             <td>${escapeHtml(category.name)}</td>
             <td>${category.sortOrder}</td>
             <td>${category.enabled ? "启用" : "停用"}</td>
             <td><div class="row-actions">
-                <button class="secondary-btn" type="button" data-action="admin-edit-category" data-id="${category.id}">编辑</button>
-                <button class="ghost-btn" type="button" data-action="admin-disable-category" data-id="${category.id}">停用</button>
+                <button class="secondary-btn" type="button" data-action="manager-edit-category" data-id="${category.id}">编辑</button>
+                <button class="ghost-btn" type="button" data-action="manager-disable-category" data-id="${category.id}" ${category.enabled ? "" : "disabled"}>停用</button>
             </div></td>
         </tr>
     `).join("");
 }
 
-function renderAdminDishes() {
-    $("#adminDishTable").innerHTML = state.adminDishes.map((dish) => `
-        <tr>
+function renderManagerDishes() {
+    $("#adminDishTable").innerHTML = state.managerDishes.map((dish) => `
+        <tr class="${String(state.editingDishId) === String(dish.id) ? "editing-row" : ""}">
             <td>${escapeHtml(dish.name)}</td>
             <td>${escapeHtml(dish.categoryName)}</td>
             <td>${money(dish.price)}</td>
@@ -640,19 +698,19 @@ function renderAdminDishes() {
             <td>${dish.sales}</td>
             <td>${dish.available ? "上架" : "下架"}</td>
             <td><div class="row-actions">
-                <button class="secondary-btn" type="button" data-action="admin-edit-dish" data-id="${dish.id}">编辑</button>
-                <button class="ghost-btn" type="button" data-action="admin-disable-dish" data-id="${dish.id}">下架</button>
+                <button class="secondary-btn" type="button" data-action="manager-edit-dish" data-id="${dish.id}">编辑</button>
+                <button class="ghost-btn" type="button" data-action="manager-disable-dish" data-id="${dish.id}" ${dish.available ? "" : "disabled"}>下架</button>
             </div></td>
         </tr>
     `).join("");
 }
 
-function renderAdminOrders() {
-    if (!state.adminOrders.length) {
+function renderManagerOrders() {
+    if (!state.managerOrders.length) {
         $("#adminOrderTable").innerHTML = `<tr><td colspan="6">暂无订单</td></tr>`;
         return;
     }
-    $("#adminOrderTable").innerHTML = state.adminOrders.map((order) => `
+    $("#adminOrderTable").innerHTML = state.managerOrders.map((order) => `
         <tr>
             <td>${escapeHtml(order.orderNo)}</td>
             <td>${escapeHtml(order.user.nickname)}</td>
@@ -661,7 +719,7 @@ function renderAdminOrders() {
             <td>${formatDate(order.createdAt)}</td>
             <td><div class="row-actions">
                 <select id="status-${order.id}">${statusOptions(order.status)}</select>
-                <button class="secondary-btn" type="button" data-action="admin-update-status" data-id="${order.id}">更新</button>
+                <button class="secondary-btn" type="button" data-action="manager-update-status" data-id="${order.id}">更新</button>
             </div></td>
         </tr>
     `).join("");
@@ -669,9 +727,9 @@ function renderAdminOrders() {
 
 async function loadAdminOrders() {
     try {
-        state.adminOrders = await api(`${managementApiBase()}/orders`);
-        renderAdminOrders();
-        showToast("后台订单已刷新");
+        state.managerOrders = await api(`${managementApiBase()}/orders`);
+        renderManagerOrders();
+        showToast("订单已刷新");
     } catch (error) {
         showToast(error.message);
     }
@@ -689,7 +747,7 @@ async function saveCategory(event) {
         const method = state.editingCategoryId ? "PUT" : "POST";
         await api(path, { method, body: JSON.stringify(body) });
         resetCategoryForm();
-        await loadAdmin();
+        await loadManager();
         showToast("分类已保存");
     } catch (error) {
         showToast(error.message);
@@ -720,10 +778,11 @@ async function saveDish(event) {
         };
         const path = state.editingDishId ? `${managementApiBase()}/dishes/${state.editingDishId}` : `${managementApiBase()}/dishes`;
         const method = state.editingDishId ? "PUT" : "POST";
+        const message = state.editingDishId ? "菜品已更新" : "菜品已创建";
         await api(path, { method, body: JSON.stringify(body) });
         resetDishForm();
-        await loadAdmin();
-        showToast("菜品已保存");
+        await loadManager();
+        showToast(message);
     } catch (error) {
         showToast(error.message);
     }
@@ -740,6 +799,40 @@ function resetDishForm() {
     $("#adminDishDescription").value = "";
     $("#adminDishAvailable").checked = true;
     $("#dishSaveBtn").textContent = "保存菜品";
+    const editState = $("#dishEditState");
+    if (editState) {
+        editState.textContent = "新增菜品";
+    }
+    renderManagerDishes();
+}
+
+function editDish(dishId) {
+    const dish = state.managerDishes.find((item) => String(item.id) === String(dishId));
+    if (!dish) {
+        showToast("菜品不存在，请刷新后重试");
+        return;
+    }
+
+    state.editingDishId = dish.id;
+    renderDishSelects();
+    $("#adminDishCategory").value = String(dish.categoryId);
+    $("#adminDishName").value = dish.name || "";
+    $("#adminDishPrice").value = dish.price ?? "";
+    $("#adminDishStock").value = dish.stock ?? "";
+    $("#adminDishTags").value = dish.tasteTags || "";
+    $("#adminDishIngredients").value = dish.ingredients || "";
+    $("#adminDishImage").value = dish.imageUrl || "";
+    $("#adminDishDescription").value = dish.description || "";
+    $("#adminDishAvailable").checked = Boolean(dish.available);
+    $("#dishSaveBtn").textContent = "更新菜品";
+    const editState = $("#dishEditState");
+    if (editState) {
+        editState.textContent = `正在编辑：${dish.name}`;
+    }
+    renderManagerDishes();
+    $("#dishManagerPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => $("#adminDishName")?.focus(), 180);
+    showToast("已进入菜品编辑模式");
 }
 
 async function generateDishDescription() {
@@ -762,33 +855,25 @@ async function generateDishDescription() {
 async function loadAnalysis() {
     try {
         const analysis = await api(`${managementApiBase()}/ai/reviews-analysis`);
+        const positive = analysis.sentimentCount.POSITIVE || 0;
+        const neutral = analysis.sentimentCount.NEUTRAL || 0;
+        const negative = analysis.sentimentCount.NEGATIVE || 0;
         $("#analysisBox").innerHTML = `
-            <p>评价数：${analysis.totalReviews}</p>
-            <p>平均评分：${analysis.averageRating}</p>
-            <p>情感统计：好评 ${analysis.sentimentCount.POSITIVE || 0}，中性 ${analysis.sentimentCount.NEUTRAL || 0}，差评 ${analysis.sentimentCount.NEGATIVE || 0}</p>
-            <p>热点问题：${analysis.hotIssues.length ? analysis.hotIssues.join("、") : "暂无"}</p>
-            <p>${escapeHtml(analysis.suggestion)}</p>
-        `;
-    } catch (error) {
-        showToast(error.message);
-    }
-}
-
-async function loadHotDishAnalysis() {
-    const box = $("#hotDishAnalysisBox");
-    if (!box) {
-        return;
-    }
-    try {
-        const analysis = await api(`${managementApiBase()}/ai/hot-dishes-analysis`);
-        const rows = analysis.topDishes.map((dish) => `
-            <p>${escapeHtml(dish.dishName)}：${dish.quantity} 份，${money(dish.revenue)}，占比 ${dish.quantityShare}%</p>
-        `).join("");
-        box.innerHTML = `
-            <p>总销量：${analysis.totalQuantity} 份</p>
-            <p>销售额：${money(analysis.totalRevenue)}</p>
-            ${rows || "<p>暂无热门菜品数据</p>"}
-            <p>${escapeHtml(analysis.suggestion)}</p>
+            <div class="analysis-summary">
+                <div><span>评价总数</span><strong>${analysis.totalReviews}</strong></div>
+                <div><span>平均评分</span><strong>${analysis.averageRating}</strong></div>
+                <div><span>好评</span><strong>${positive}</strong></div>
+                <div><span>中性</span><strong>${neutral}</strong></div>
+                <div><span>差评</span><strong>${negative}</strong></div>
+            </div>
+            <div class="analysis-detail">
+                <h2>热点问题</h2>
+                <p>${analysis.hotIssues.length ? analysis.hotIssues.map(escapeHtml).join("、") : "暂无明显集中问题"}</p>
+            </div>
+            <div class="analysis-detail">
+                <h2>经营建议</h2>
+                <p>${escapeHtml(analysis.suggestion)}</p>
+            </div>
         `;
     } catch (error) {
         showToast(error.message);
@@ -835,8 +920,8 @@ async function handleAction(event) {
         saveCart();
         renderCart();
     }
-    if (action === "admin-edit-category") {
-        const category = state.adminCategories.find((item) => String(item.id) === String(id));
+    if (action === "manager-edit-category" || action === "admin-edit-category") {
+        const category = state.managerCategories.find((item) => String(item.id) === String(id));
         if (category) {
             state.editingCategoryId = category.id;
             $("#categoryName").value = category.name;
@@ -845,29 +930,16 @@ async function handleAction(event) {
             $("#categorySaveBtn").textContent = "更新";
         }
     }
-    if (action === "admin-disable-category") {
-        await adminDisable(`${managementApiBase()}/categories/${id}`, "分类已停用", loadAdmin);
+    if (action === "manager-disable-category" || action === "admin-disable-category") {
+        await adminDisable(`${managementApiBase()}/categories/${id}`, "分类已停用", loadManager);
     }
-    if (action === "admin-edit-dish") {
-        const dish = state.adminDishes.find((item) => String(item.id) === String(id));
-        if (dish) {
-            state.editingDishId = dish.id;
-            $("#adminDishCategory").value = dish.categoryId;
-            $("#adminDishName").value = dish.name;
-            $("#adminDishPrice").value = dish.price;
-            $("#adminDishStock").value = dish.stock;
-            $("#adminDishTags").value = dish.tasteTags || "";
-            $("#adminDishIngredients").value = dish.ingredients;
-            $("#adminDishImage").value = dish.imageUrl || "";
-            $("#adminDishDescription").value = dish.description;
-            $("#adminDishAvailable").checked = dish.available;
-            $("#dishSaveBtn").textContent = "更新菜品";
-        }
+    if (action === "manager-edit-dish" || action === "admin-edit-dish") {
+        editDish(id);
     }
-    if (action === "admin-disable-dish") {
-        await adminDisable(`${managementApiBase()}/dishes/${id}`, "菜品已下架", loadAdmin);
+    if (action === "manager-disable-dish" || action === "admin-disable-dish") {
+        await adminDisable(`${managementApiBase()}/dishes/${id}`, "菜品已下架", loadManager);
     }
-    if (action === "admin-update-status") {
+    if (action === "manager-update-status" || action === "admin-update-status") {
         await updateAdminOrderStatus(id);
     }
 }

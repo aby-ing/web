@@ -126,8 +126,8 @@ cd E:\web\campus-restaurant-order-system\backend
 - `GET /api/admin/ai/reviews-analysis`：评价分析成功
 
 ## 小组成员分工
-- 成员 A：需求分析、数据库设计、后端接口
-- 成员 B：前端页面、交互联调、用户手册
-- 成员 C：AI 模块、测试验证、汇报材料
+- 杨雨辰：需求分析、数据库设计、后端接口
+- 王镜凯：前端页面、交互联调、用户手册
+- 孙嘉为：AI 模块、测试验证、汇报材料
 
-提交前请将成员 A/B/C 替换为真实姓名。
+

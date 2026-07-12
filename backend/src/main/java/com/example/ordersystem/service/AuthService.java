@@ -48,6 +48,9 @@ public class AuthService {
         if (!user.isActive() || !passwordService.matches(request.password(), user.getPasswordHash())) {
             throw new IllegalArgumentException("用户名或密码错误");
         }
+        if (user.getRole() == Role.ADMIN) {
+            throw new SecurityException("管理员模块已停用");
+        }
         return issueToken(user);
     }
 
@@ -68,7 +71,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new SecurityException("用户不存在"));
         if (!user.isActive()) {
-            throw new SecurityException("账号已被停用");
+            throw new SecurityException("账号已停用");
         }
         return user;
     }

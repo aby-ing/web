@@ -15,10 +15,8 @@
         <a class="nav-btn" href="/orders.html">订单</a>
         <a class="nav-btn" href="/reviews.html">评价</a>
         <a class="nav-btn active" href="/ai.html">AI 助手</a>
-        <a class="nav-btn merchant-only" href="/merchant.html" hidden>商家工作台</a>
-        <a class="nav-btn admin-only" href="/admin.html" hidden>后台</a>
     </nav>
-    <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button><button class="danger-btn admin-only" type="button" id="shutdownBtn" hidden>停止服务</button></div>
+    <div class="top-actions"><div class="user-chip" id="userChip">未登录</div><button class="ghost-btn" type="button" id="logoutBtn">退出</button></div>
 </header>
 <main class="page-shell">
     <div class="ai-layout">
@@ -31,12 +29,6 @@
             <button class="primary-btn" type="submit">生成推荐</button>
         </form>
         <div class="ai-result" id="aiRecommendResult"></div>
-        <form class="editor-panel" id="serviceForm">
-            <h2>智能客服</h2>
-            <label>问题<input id="serviceQuery" placeholder="营业时间、退单、打包自提"></label>
-            <button class="secondary-btn" type="submit">提问</button>
-            <p class="answer" id="serviceAnswer"></p>
-        </form>
     </div>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

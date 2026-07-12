@@ -124,6 +124,12 @@ button {
     background: var(--surface-2);
 }
 
+body:not([data-page="merchant"]) .nav-tabs a[href="/merchant.html"],
+body:not([data-page="merchant"]) .nav-tabs a[href="/admin.html"],
+body:not([data-page="merchant"]) .admin-only {
+    display: none !important;
+}
+
 .primary-btn {
     color: #fff;
     background: var(--green);
@@ -357,7 +363,7 @@ textarea:focus {
 }
 
 .ai-layout {
-    grid-template-columns: 320px minmax(0, 1fr) 320px;
+    grid-template-columns: 320px minmax(0, 1fr);
 }
 
 .menu-area {
@@ -586,6 +592,67 @@ textarea:focus {
     background: var(--surface-2);
 }
 
+.customer-service-fab {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 60;
+    display: grid;
+    width: 64px;
+    min-width: 64px;
+    height: 64px;
+    min-height: 64px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    padding: 0;
+    color: #fff;
+    background: var(--green);
+    box-shadow: 0 14px 30px rgba(24, 76, 57, 0.24);
+    font-weight: 700;
+}
+
+.customer-service-fab:hover {
+    background: var(--green-dark);
+}
+
+.customer-service-panel {
+    position: fixed;
+    right: 28px;
+    bottom: 104px;
+    z-index: 59;
+    width: min(360px, calc(100vw - 48px));
+}
+
+.customer-service-panel[hidden] {
+    display: none;
+}
+
+.customer-service-card {
+    display: grid;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.customer-service-head {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.icon-btn {
+    width: 34px;
+    min-height: 34px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1;
+}
+
 .admin-grid {
     display: grid;
     grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.2fr);
@@ -594,6 +661,12 @@ textarea:focus {
 
 .admin-panel.wide {
     grid-column: span 2;
+}
+
+.admin-panel.analysis-panel {
+    display: grid;
+    align-content: start;
+    gap: 14px;
 }
 
 .inline-form,
@@ -661,6 +734,15 @@ td {
     gap: 8px;
 }
 
+.edit-state {
+    color: var(--green-dark);
+    font-weight: 600;
+}
+
+tr.editing-row td {
+    background: var(--surface-2);
+}
+
 .empty-state {
     padding: 28px;
     border: 1px dashed var(--line);
@@ -675,6 +757,46 @@ td {
     gap: 10px;
     min-height: 120px;
     margin-top: 12px;
+}
+
+.review-analysis-box {
+    margin-top: 0;
+}
+
+.analysis-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.analysis-summary div {
+    display: grid;
+    gap: 6px;
+    min-height: 82px;
+    align-content: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    background: #fbfcfb;
+}
+
+.analysis-summary span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.analysis-summary strong {
+    color: var(--green-dark);
+    font-size: 24px;
+}
+
+.analysis-detail {
+    display: grid;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--surface-2);
 }
 
 .toast {
@@ -718,6 +840,10 @@ td {
     .admin-panel.wide {
         grid-column: auto;
     }
+
+    .analysis-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 680px) {
@@ -750,5 +876,24 @@ td {
     .dish-form textarea,
     .dish-form .check-label {
         grid-column: auto;
+    }
+
+    .customer-service-fab {
+        right: 16px;
+        bottom: 16px;
+        width: 60px;
+        min-width: 60px;
+        height: 60px;
+        min-height: 60px;
+    }
+
+    .customer-service-panel {
+        right: 12px;
+        bottom: 88px;
+        width: calc(100vw - 24px);
+    }
+
+    .analysis-summary {
+        grid-template-columns: 1fr;
     }
 }

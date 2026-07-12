@@ -51,6 +51,7 @@ public class MenuService {
     public Dtos.CategoryView createCategory(Dtos.CategoryRequest request) {
         Category category = new Category();
         applyCategory(category, request);
+        ensureUniqueCategoryName(category);
         return toCategoryView(categoryRepository.save(category));
     }
 
@@ -59,6 +60,10 @@ public class MenuService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("分类不存在"));
         applyCategory(category, request);
+        ensureUniqueCategoryName(category);
+        if (!category.isEnabled() && dishRepository.existsByCategoryIdAndAvailableTrue(category.getId())) {
+            throw new IllegalArgumentException("分类下仍有上架菜品，请先下架或移动菜品");
+        }
         return toCategoryView(categoryRepository.save(category));
     }
 
@@ -66,6 +71,9 @@ public class MenuService {
     public void disableCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("分类不存在"));
+        if (dishRepository.existsByCategoryIdAndAvailableTrue(id)) {
+            throw new IllegalArgumentException("分类下仍有上架菜品，请先下架或移动菜品");
+        }
         category.setEnabled(false);
         categoryRepository.save(category);
     }
@@ -124,6 +132,15 @@ public class MenuService {
         category.setName(request.name().trim());
         category.setSortOrder(request.sortOrder() == null ? 0 : request.sortOrder());
         category.setEnabled(request.enabled() == null || request.enabled());
+    }
+
+    private void ensureUniqueCategoryName(Category category) {
+        boolean duplicated = category.getId() == null
+                ? categoryRepository.existsByNameIgnoreCase(category.getName())
+                : categoryRepository.existsByNameIgnoreCaseAndIdNot(category.getName(), category.getId());
+        if (duplicated) {
+            throw new IllegalArgumentException("分类名称已存在");
+        }
     }
 
     private void applyDish(Dish dish, Dtos.DishRequest request) {

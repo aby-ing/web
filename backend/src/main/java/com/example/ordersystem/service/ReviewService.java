@@ -3,8 +3,8 @@ package com.example.ordersystem.service;
 import com.example.ordersystem.domain.Dish;
 import com.example.ordersystem.domain.FoodOrder;
 import com.example.ordersystem.domain.OrderItem;
-import com.example.ordersystem.domain.User;
 import com.example.ordersystem.domain.Review;
+import com.example.ordersystem.domain.User;
 import com.example.ordersystem.dto.Dtos;
 import com.example.ordersystem.repository.DishRepository;
 import com.example.ordersystem.repository.OrderItemRepository;
@@ -85,12 +85,19 @@ public class ReviewService {
     }
 
     private String detectSentiment(int rating, String content) {
-        String text = content == null ? "" : content;
-        if (rating >= 4 || containsAny(text, "好吃", "满意", "新鲜", "推荐", "喜欢", "不错")) {
+        if (rating <= 2) {
+            return "NEGATIVE";
+        }
+        if (rating >= 4) {
             return "POSITIVE";
         }
-        if (rating <= 2 || containsAny(text, "难吃", "太慢", "差", "贵", "凉", "咸", "油")) {
+
+        String text = content == null ? "" : content;
+        if (containsAny(text, "难吃", "太慢", "不好", "差", "贵", "冷", "咸", "油")) {
             return "NEGATIVE";
+        }
+        if (containsAny(text, "好吃", "满意", "新鲜", "推荐", "喜欢", "不错")) {
+            return "POSITIVE";
         }
         return "NEUTRAL";
     }

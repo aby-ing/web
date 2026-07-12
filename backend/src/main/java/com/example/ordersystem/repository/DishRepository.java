@@ -10,7 +10,7 @@ import java.util.List;
 public interface DishRepository extends JpaRepository<Dish, Long> {
     @Query("""
             select d from Dish d
-            where (:onlyAvailable = false or d.available = true)
+            where (:onlyAvailable = false or (d.available = true and d.category.enabled = true))
               and (:categoryId is null or d.category.id = :categoryId)
               and (:keyword is null or lower(d.name) like lower(concat('%', :keyword, '%'))
                    or lower(d.ingredients) like lower(concat('%', :keyword, '%'))
@@ -22,4 +22,6 @@ public interface DishRepository extends JpaRepository<Dish, Long> {
                       @Param("onlyAvailable") boolean onlyAvailable);
 
     List<Dish> findTop6ByAvailableTrueOrderBySalesDescIdAsc();
+
+    boolean existsByCategoryIdAndAvailableTrue(Long categoryId);
 }
